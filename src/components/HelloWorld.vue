@@ -1,58 +1,147 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
-  </div>
+
+    <section class="src-components-formulario">
+        <div class="jumbotron">
+            <h2> Formulario Gastos</h2>
+          <form novalidate autocomplete="off">
+
+                <!-- ingreso de dato texto  -->
+                <div class="form-group">
+                    <label for="nombre"> Ingrese un Texto </label>
+                    <input type="text" id="nombre" class="form-control" v-model="v.f.texto.$model">
+                </div>
+
+                <!-- cartel de validación nombre -->
+                <div v-if="v.f.texto.$error && v.f.texto.$dirty" class="alert alert-danger mt-1">
+                    <div v-if="v.f.texto.required.$invalid">Este campo es requerido</div>
+                </div>
+      </form>
+
+      <h3>{{codificar(v.f.texto.$model)}}</h3>
+    </div>
+    </section>
+
 </template>
 
 <script>
+
+import { required, } from '@vuelidate/validators'
+
+import {useVuelidate} from '@vuelidate/core'
+
+import filtros from '../filtros.js'
+
+
 export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
+  name: 'src-components-formulario',
+  mixins: [filtros],
+  props: [],
+  mounted() {
+  },
+
+  created(){
+
+// acá valido los campos de f (formulario)
+  const rules= {
+    f: {
+  texto: {
+        required,
+   
+      },
+  
+    }
+  }
+        const f = this.f
+        this.v = useVuelidate(rules, {f})
+
+  },
+   components: {
+  },
+  data() {
+    return {
+      f: {
+        texto: '',
+      },
+      v:null, 
+      url: 'https://5f789e6d66d4960016c49ded.mockapi.io/datosform'
+
+    }
+  },
+  
+  methods: {
+
+    //Envio los datos del formulario al backend con AXIOS- POST
+    async sendDatosForm(datos) {
+      try {
+        let response = await this.axios.post(this.url, datos, {
+          'content-type': 'application/json'
+        })
+        console.log(response.data)
+      } catch (error) {
+          console.log('HTTP POST ERROR', error)
+      }
+    },
+
+    // SUBMIT DEL FORMULARIO
+    async enviar() {
+        this.v.$touch();
+        if(!this.v.$invalid) {
+          let form = this.f;
+          try{
+            await this.sendDatosForm(form);
+            this.resetCasillas();
+            this.v.$reset();            
+          }catch(err){
+            console.err(err);
+          }
+
+        } else {
+          this.resetCasillas()
+          this.v.$reset()
+        }
+    },
+
+    // REINICIO DE LOS DATOS- PONE EN BLANCO LAS CASILLAS COMPLETADAS 
+    resetCasillas() {
+      this.v.f.nombre.$model = ''
+      this.v.f.descripcion.$model = ''
+      this.v.f.importe.$model = ''
+    }
+
+  },
+  computed: {
+
   }
 }
+
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+<style scoped lang="css">
+
+  .jumbotron {
+    background-color: rgb(25, 184, 144);
+    color: white;
+  }
+
+  hr {
+    background-color: #ddd;
+  }
+
+  .btn {
+    border: none;
+    background-color: white;
+    font-family: "Montserrat", "Avenir";
+    text-transform: uppercase;
+    height: 100%;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: steelblue;
+    transition: all 0.3s;
+    outline: none;
+  }
+  .btn:hover {
+    color: white;
+    background-color: rgb(216, 95, 15);
+  }
+
 </style>
