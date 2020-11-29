@@ -2,7 +2,7 @@
 
     <section class="src-components-formulario">
         <div class="jumbotron">
-            <h2> Formulario Gastos</h2>
+            <h2> Codificar de vocales</h2>
           <form novalidate autocomplete="off">
 
                 <!-- ingreso de dato texto  -->
